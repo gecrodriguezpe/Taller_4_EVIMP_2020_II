@@ -30,13 +30,13 @@ attach(base)
 
 histogram_BAC = base %>% 
   ggplot(aes(x = bac)) +
-  geom_histogram(binwidth = 0.001) +
+  geom_histogram(binwidth = 0.0001) +
   geom_vline(xintercept = 0.08, color = "red") + 
   geom_vline(xintercept = 0.15, color = "blue") + 
   theme_light() +
   xlab("BAC") + 
   ylab("Frequency") +
-  ggtitle("BAC histogram")
+  ggtitle("Histograma BAC")
 
 histogram_BAC
 
@@ -75,6 +75,12 @@ summary(aged_reg)
 ### acc vs bac
 acc_reg = rdrobust(acc, bac, c = 0.08, kernel = "uniform", p = 1, h = 0.05, vce = "hc0")
 summary(acc_reg)
+
+### means 
+mean(male)
+mean(white)
+mean(aged)
+mean(acc)
           
 # Punto 4
 ## Reproducción parcial de la Tabla 3, columna 1, Panel (A) y (B), (Estimación de interés)
@@ -94,24 +100,28 @@ recidivism_reg_0.025 = rdrobust(recidivism, bac, c = 0.08, kernel = "uniform",
                                p = 1, h = 0.025, vce = "hc0", covs = covs)
 summary(recidivism_reg_0.025)
 
+### mean 
+mean(recidivism)
+
 # Punto 5
 ## Muestre en una gráfica el outcome sobre la running variable, con cutoff a 0.08 
 ## y soporte del BAC entre 0.03 y 0.20, con intervalos de confianza, kernel rectangular
 
 ### gráfica recidivism vs bac (sin intervalos de confianza)
 recivitism_plot_not_interval = rdplot(recidivism, bac, x.lim = c(0.03, 0.2), y.lim = c(0, 0.25), 
-       c = 0.08, kernel = "uniform", support = c(0.03, 0.2), p = 1)
+       c = 0.08, kernel = "uniform", support = c(0.03, 0.2), p = 1, h = 0.05)
 
 ### gráfica recidivism vs bac (con intervalos de confianza)
 recivitism_plot_with_interval = rdplot(recidivism, bac, x.lim = c(0.03, 0.2), y.lim = c(0, 0.25), 
                                       c = 0.08, kernel = "uniform", support = c(0.03, 0.2), 
-                                      p = 1, shade = TRUE, ci = 95)
+                                      p = 1, shade = TRUE, ci = 95, h = 0.05, x.label = "bac",
+                                      y.label = "recidivism", title = "recidivism vs bac")
 
 # Punto 6
 ## Calcule el pvalor del efecto del DUI usando inferencia randomizada
 
-random_inf_treshold = rdrandinf(recidivism, bac, cutoff = 0.08, statistic = "diffmeans", p = 1, kernel = "uniform"
-          , reps = 4000, seed = 1234);summary(random_inf_treshold)
+random_inf_treshold = rdrandinf(recidivism, bac, cutoff = 0.08, statistic = "diffmeans", p = 1, kernel = "uniform", 
+                                reps = 4000, seed = 1234);summary(random_inf_treshold)
 
 # Punto 7
 ## Realice un experimento placebo a 0.04, con ancho de banda .04  
@@ -128,7 +138,9 @@ placebo_without = rdplot(recidivism, bac, x.lim = c(0, 0.08), y.lim = c(0, 0.25)
 ### Gráfica placebo con intervalos de confianza
 placebo_with = rdplot(recidivism, bac, x.lim = c(0, 0.2), y.lim = c(0, 0.25), 
                                        c = placebo_cutoff, kernel = "uniform", support = c(0, 0.2), 
-                                       p = 1, shade = TRUE, ci = 95, h = bandwidth_placebo)
+                                       p = 1, shade = TRUE, ci = 95, h = bandwidth_placebo, 
+                                       x.label = "bac", y.label = "recidivism",
+                                       title = "recidivism vs bac (caso placebo)")
 
 ### Estimando el modelo en el placebo 
 placebo_reg_0.04 = rdrobust(recidivism, bac, c = placebo_cutoff, kernel = "uniform", 
